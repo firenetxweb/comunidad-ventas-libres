@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad Ventas Libres</title>
+    
+    <!-- SDKs de Firebase v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <!-- Fuentes e Iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #1877f2;
+            --bg-gray: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-dark: #050505;
+            --text-muted: #65676b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-gray);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* Sección de Login */
+        #login-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+        }
+
+        .login-btn {
+            background-color: white;
+            color: #757575;
+            border: 1px solid #ddd;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Cabecera del usuario */
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #d93025;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Caja para crear nueva publicación */
+        .create-post {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .create-post textarea {
+            width: 100%;
+            border: none;
+            background: var(--bg-gray);
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .post-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .image-upload-label {
+            color: #45bd62;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        
+        .image-upload-label:hover {
+            background-color: var(--bg-gray);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .publish-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .publish-btn:disabled {
+            background-color: #a0c3ff;
+            cursor: not-allowed;
+        }
+
+        /* Estilos del Feed */
+        .post {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .post-date {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .post-content {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .post-actions {
+            border-top: 1px solid #ebedf0;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--bg-gray);
+        }
+
+        .whatsapp-btn {
+            color: #25D366;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Pantalla de Inicio de Sesión -->
+        <div id="login-section">
+            <i class="fas fa-users" style="font-size: 48px; color: var(--primary-blue); margin-bottom: 20px;"></i>
+            <h2>Comunidad Ventas Libres</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Inicia sesión para publicar e interactuar.</p>
+            <button class="login-btn" onclick="signInWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
+                Continuar con Google
+            </button>
+        </div>
+
+        <!-- Aplicación Principal (Oculta hasta iniciar sesión) -->
+        <div id="main-app" style="display: none;">
+            
+            <div class="user-header">
+                <div class="user-info">
+                    <img id="currentUserPic" src="" alt="Perfil">
+                    <span id="currentUserName">Usuario</span>
+                </div>
+                <button class="logout-btn" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </div>
+
+            <div class="create-post">
+                <textarea id="postText" rows="3" placeholder="¿Qué quieres compartir con la comunidad?"></textarea>
+                
+                <div class="post-tools">
+                    <label class="image-upload-label">
+                        <i class="fas fa-image"></i> Foto/Video
+                        <input type="file" id="imageInput" accept="image/*">
+                    </label>
+                    <button id="publishBtn" class="publish-btn" onclick="addPost()">Publicar</button>
+                </div>
+            </div>
+
+            <div id="feed"></div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Configuración de Firebase con tus credenciales
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQk0rJ12xFSJbUT0iCnKHOB0yujbeOkNk",
+            authDomain: "ventaslibres-1.firebaseapp.com",
+            databaseURL: "https://ventaslibres-1-default-rtdb.firebaseio.com",
+            projectId: "ventaslibres-1",
+            storageBucket: "ventaslibres-1.firebasestorage.app",
+            messagingSenderId: "523976352559",
+            appId: "1:523976352559:web:ad127082399a16557037da",
+            measurementId: "G-NDNCB67GFM"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+        
+        let currentUser = null;
+
+        // 2. Gestión de Autenticación
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        function signInWithGoogle() {
+            auth.signInWithPopup(provider).catch(error => console.error("Error en login:", error));
+        }
+
+        function signOut() {
+            auth.signOut();
+        }
+
+        // Observador del estado de sesión
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('currentUserName').innerText = user.displayName;
+                document.getElementById('currentUserPic').src = user.photoURL;
+            } else {
+                currentUser = null;
+                document.getElementById('login-section').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+            }
+        });
+
+        // 3. Crear Publicación (Con soporte para Imágenes)
+        async function addPost() {
+            const textInput = document.getElementById('postText').value.trim();
+            const imageFile = document.getElementById('imageInput').files[0];
+            const publishBtn = document.getElementById('publishBtn');
+
+            if (textInput === "" && !imageFile) {
+                alert("Escribe un mensaje o selecciona una imagen.");
+                return;
+            }
+
+            publishBtn.disabled = true;
+            publishBtn.innerText = "Subiendo...";
+
+            let imageUrl = null;
+
+            try {
+                // Subir imagen a Storage si se seleccionó una
+                if (imageFile) {
+                    const storageRef = storage.ref(`comunidad_fotos/${Date.now()}_${imageFile.name}`);
+                    const uploadTask = await storageRef.put(imageFile);
+                    imageUrl = await uploadTask.ref.getDownloadURL();
+                }
+
+                // Guardar en Firestore
+                await db.collection("comunidad_posts").add({
+                    author: currentUser.displayName,
+                    authorPic: currentUser.photoURL,
+                    content: textInput,
+                    imageUrl: imageUrl,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Limpiar formulario
+                document.getElementById('postText').value = "";
+                document.getElementById('imageInput').value = "";
+                
+            } catch (error) {
+                console.error("Error al publicar: ", error);
+                alert("Hubo un error al publicar.");
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.innerText = "Publicar";
+            }
+        }
+
+        // 4. Compartir en WhatsApp
+        function shareToWhatsApp(content, hasImage) {
+            let message = `*Nueva publicación en la comunidad:*\n\n`;
+            if (content) message += `"${content}"\n\n`;
+            if (hasImage) message += `(Contiene una imagen adjunta 📸)\n\n`;
+            message += `¡Entra a la plataforma para verla!`;
+            
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // 5. Cargar Feed en Tiempo Real
+        db.collection("comunidad_posts")
+          .orderBy("timestamp", "desc")
+          .onSnapshot((querySnapshot) => {
+            const feedDiv = document.getElementById('feed');
+            feedDiv.innerHTML = ""; 
+
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
+                const dateInfo = post.timestamp ? post.timestamp.toDate().toLocaleString('es-MX') : 'Justo ahora...';
+                
+                let postHTML = `
+                    <div class="post">
+                        <div class="post-header">
+                            <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="post-avatar">
+                            <div>
+                                <div class="post-author">${post.author}</div>
+                                <div class="post-date">${dateInfo}</div>
+                            </div>
+                        </div>`;
+                
+                if (post.content) {
+                    postHTML += `<div class="post-content">${post.content}</div>`;
+                }
+
+                if (post.imageUrl) {
+                    postHTML += `<img src="${post.imageUrl}" class="post-image" alt="Imagen del post">`;
+                }
+
+                const hasImageFlag = post.imageUrl ? 'true' : 'false';
+                const safeContent = post.content ? post.content.replace(/'/g, "\\'") : '';
+
+                postHTML += `
+                        <div class="post-actions">
+                            <button class="action-btn"><i class="far fa-thumbs-up"></i> Me gusta</button>
+                            <button class="action-btn whatsapp-btn" onclick="shareToWhatsApp('${safeContent}', ${hasImageFlag})">
+                                <i class="fab fa-whatsapp"></i> Compartir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                feedDiv.innerHTML += postHTML;
+            });
+        });
+    </script>
+</body>
+</html>
